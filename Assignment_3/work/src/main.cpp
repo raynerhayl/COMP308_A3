@@ -59,7 +59,8 @@ float g_zoom = 1.0;
 //
 bool g_useShader = false;
 GLuint g_texture = 0;
-GLuint *textures = new GLuint[2];
+GLuint g_texture1 = 1;
+GLuint textures[2];
 GLuint g_shader = 0;
 
 
@@ -149,33 +150,57 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 // Called once on start up
 // 
 void initLight() {
-	float direction[] = { 0.0f, 0.0f, 1.0f, 1.0f };
-	float diffintensity[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-	float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	float dir_pos[] = { 2.0f, 1.0f, 5.0f, 0.0f };
+	float dir_int[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+	//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 
-	glLightfv(GL_LIGHT0, GL_POSITION, direction);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffintensity);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	glLightfv(GL_LIGHT0, GL_POSITION, dir_pos);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, dir_int);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glEnable(GL_LIGHT0);
 
+	float spot_pos[] = { 0.0f, 5.0f, 0.0f, 0.0f };
+	float spot_dir[] = { 0.0f, -1.0f, 0.0f };
+	float spot_int[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+	//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 
+	glLightfv(GL_LIGHT1, GL_POSITION, spot_pos);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_int);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	glEnable(GL_LIGHT1);
 }
 
-void loadTexture(GLuint texture, const char* filename)
+/*void loadTexture(GLuint texture, const char* filename)
 {
 	Image tex(filename);
 
+	glActiveTexture(GL_TEXTURE0); // Use slot 0, need to use GL_TEXTURE1 ... etc if using more than one texture PER OBJECT
+	glGenTextures(1, &texture); // Generate texture ID
+	glBindTexture(GL_TEXTURE_2D, texture); // Bind it as a 2D texture
 
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
+	// Setup sampling strategies
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// Finnaly, actually fill the data into our texture
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, tex.w, tex.h, tex.glFormat(), GL_UNSIGNED_BYTE, tex.dataPointer());
+}*/
+
+GLuint loadTexture(const char* file)
+{
+    GLuint result;
+    Image img(file);
+  
+    glGenTextures(1, &result);
+    glBindTexture(GL_TEXTURE_2D, result);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, img.w, img.h, img.glFormat(), GL_UNSIGNED_BYTE, img.dataPointer());
+    
+    return result;
 }
+
 
 
 // An example of how to load a texure from a hardcoded location
@@ -183,38 +208,25 @@ void loadTexture(GLuint texture, const char* filename)
 void initTexture() {
 
 
-	glGenTextures(2, textures); // Generate texture ID
+	glGenTextures(1, &g_texture); // Generate texture ID
 
 
 	Image tex0("./work/res/textures/wood.jpg");
 
 	glActiveTexture(GL_TEXTURE0); // Use slot 0, need to use GL_TEXTURE1 ... etc if using more than one texture PER OBJECT
-	glBindTexture(GL_TEXTURE_2D, textures[0]); // Bind it as a 2D texture
+	glBindTexture(GL_TEXTURE_2D, g_texture); // Bind it as a 2D texture
 
 											   // Setup sampling strategies
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	// Finnaly, actually fill the data into our texture
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, tex0.w, tex0.h, tex0.glFormat(), GL_UNSIGNED_BYTE, tex0.dataPointer());
 
-	Image tex1("./work/res/textures/brick.jpg");
 
-	glActiveTexture(GL_TEXTURE1); // Use slot 0, need to use GL_TEXTURE1 ... etc if using more than one texture PER OBJECT
-	glBindTexture(GL_TEXTURE_2D, textures[1]); // Bind it as a 2D texture
-
-											 // Setup sampling strategies
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// Finnaly, actually fill the data into our texture
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, tex1.w, tex1.h, tex1.glFormat(), GL_UNSIGNED_BYTE, tex1.dataPointer());
 
 	//textures = new GLuint[2];
 	//glGenTextures(2, textures);
@@ -259,7 +271,7 @@ void renderGEOM(std::vector<cgra::vec3> m_points, std::vector<cgra::vec2> m_uvs,
 	for (int tri = 0; tri < m_triangles.size(); tri++) {
 		for (int vtri = 0; vtri < 3; vtri++) {
 			glNormal3f(m_normals[m_triangles[tri].v[vtri].n].x, m_normals[m_triangles[tri].v[vtri].n].y, m_normals[m_triangles[tri].v[vtri].n].z);
-			glTexCoord2f(5*m_uvs[m_triangles[tri].v[vtri].t].x, 5*m_uvs[m_triangles[tri].v[vtri].t].y);
+			glTexCoord2f(10*m_uvs[m_triangles[tri].v[vtri].t].x, 10*m_uvs[m_triangles[tri].v[vtri].t].y);
 			glVertex3f(m_points[m_triangles[tri].v[vtri].p].x, m_points[m_triangles[tri].v[vtri].p].y, m_points[m_triangles[tri].v[vtri].p].z);
 
 		}
@@ -398,16 +410,17 @@ void readOBJ(std::vector<std::vector<cgra::vec3>>* v_m_points, std::vector<std::
 						objLine >> v.p;
 
 					}
-
 					verts.push_back(v);
 				}
+				cout << verts.size() << endl;
 
 				// IFF we have 3 verticies, construct a triangle
-				if (verts.size() == 3) {
+				if (verts.size() >= 3) {
 					triangle tri;
 					tri.v[0] = verts[0];
 					tri.v[1] = verts[1];
 					tri.v[2] = verts[2];
+					cout << "Making a triangle" << endl;
 					m_triangles.push_back(tri);
 
 				}
@@ -452,6 +465,9 @@ void render(int width, int height) {
 	setupCamera(width, height);
 
 
+	initLight();
+
+
 	// Without shaders
 	// Uses the default OpenGL pipeline
 	//
@@ -475,25 +491,30 @@ void render(int width, int height) {
 		//glVertex3f(5.0, -5.0, 0.0);
 		//glEnd();
 
-		//// Enable Drawing texures
-		//glEnable(GL_TEXTURE_2D);
-		//// Use Texture as the color
-		//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		//// Set the location for binding the texture
-		//glActiveTexture(GL_TEXTURE1);
-		//// Bind the texture
-		//glBindTexture(GL_TEXTURE_2D, g_texture1);
-		// table
-		glBegin(GL_TRIANGLES);
+
+		//table
+		// Enable Drawing texures
+		glEnable(GL_TEXTURE_2D);
+		// Use Texture as the color
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		// Set the location for binding the texture
+		glActiveTexture(GL_TEXTURE0);
+		// Bind the texture
+		glBindTexture(GL_TEXTURE_2D, textures[0]);
+
+			glBegin(GL_TRIANGLES);
 
 		renderGEOM(v_m_points[0], v_m_uvs[0], v_m_normals[0], v_m_triangles[0]);
 
-		//glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_2D);
 
 
 		// teapot
 		glPushMatrix(); {
 			glTranslatef(-4, 0.5, -4);
+
+
+
 			glBegin(GL_TRIANGLES);
 
 			float ambient[] = { 0.15,0.1,0.3 ,1.0 };
@@ -509,25 +530,26 @@ void render(int width, int height) {
 		} glPopMatrix();
 
 		// torus
-		glEnable(GL_LIGHT1);
 		glPushMatrix(); {
 
-		glTranslatef(4, 1, 5);
-		glBegin(GL_TRIANGLES);
+			glTranslatef(4, 1, 5);
 
-		float ambient[] = { 0.8,0.0,0.0 ,1.0};
-		glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
-		float diffuse[] = { 0.8,0.0,0.0 ,1.0};
-		glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-		float specular[] = { 0.9,0.9,0.9, 1.0};
-		glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-		float shininess[] = { 0.25*128.0 };
-		glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
+
+
+			glBegin(GL_TRIANGLES);
+
+			float ambient[] = { 0.8,0.0,0.0 ,1.0};
+			glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+			float diffuse[] = { 0.8,0.0,0.0 ,1.0};
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+			float specular[] = { 0.9,0.9,0.9, 1.0};
+			glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+			float shininess[] = { 0.25*128.0 };
+			glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
 
 		renderGEOM(v_m_points[2], v_m_uvs[2], v_m_normals[2], v_m_triangles[2]);
 		} glPopMatrix();
 
-		glDisable(GL_LIGHT1);
 
 		// sphere
 		glPushMatrix(); {
@@ -535,25 +557,37 @@ void render(int width, int height) {
 		glTranslatef(-6, 2, 3);
 		glBegin(GL_TRIANGLES);
 
+			float ambient[] = { 0.8,0.8,0.0 ,1.0};
+			glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+			float diffuse[] = { 0.8,0.8,0.0 ,1.0};
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+			float specular[] = { 0.5,0.5,0.5, 1.0};
+			glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+			float shininess[] = { 0.50*128.0 };
+			glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
+
 		renderGEOM(v_m_points[3], v_m_uvs[3], v_m_normals[3], v_m_triangles[3]);
 
 		} glPopMatrix();
 
-		// Enable Drawing texures
+		// box
+
 		glEnable(GL_TEXTURE_2D);
 		// Use Texture as the color
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		// Set the location for binding the texture
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE0);
 		// Bind the texture
 		glBindTexture(GL_TEXTURE_2D, textures[1]);
 
-		// box
 		glPushMatrix(); {
 
 			glScalef(0.8, 0.8, 0.8);
 			glTranslatef(6, 2.5, -5);
 			glBegin(GL_TRIANGLES);
+
+			float diffuse[] = { 1.0,1.0,1.0 ,1.0};
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
 
 			renderGEOM(v_m_points[4], v_m_uvs[4], v_m_normals[4], v_m_triangles[4]);
 
@@ -742,7 +776,11 @@ int main(int argc, char **argv) {
 	// Initialize Geometry/Material/Lights
 	// YOUR CODE GOES HERE
 	// ...
-	initLight();
+	textures[0] = loadTexture("./work/res/textures/wood.jpg");
+	textures[1] = loadTexture("./work/res/textures/brick.jpg");
+
+	//loadTexture(g_texture, "work/res/textures/wood.jpg");
+	//loadTexture(g_texture1, "work/res/textures/brick.jpg");
 	initTexture();
 	initShader();
 
