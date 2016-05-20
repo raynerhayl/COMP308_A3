@@ -87,9 +87,11 @@ std::vector<std::vector<cgra::vec3>> m_triangleNormals; // Per face normal list
 	float pt_int[] = { 0.9f, 0.9f, 0.9f, 1.0f };
 
 	float l_pos[][4] = {{2.0f, 3.0f, 2.0f, 1.0f},
-						{2.0f, 2.0f, 2.0f, 1.0f}};
-	float l_int[][4] = {{0.9f, 0.9f, 0.9f, 1.0f},
-						{0.9f, 0.9f, 0.9f, 1.0f}};
+						{0.0f, 7.0f, 0.0f, 1.0f},
+						{0.0f, 2.0f, 1.0f, 0.0f}};
+	float l_int[][4] = {{0.2f, 0.2f, 0.2f, 1.0f},
+						{1.0f, 1.0f, 1.0f, 1.0f},
+						{0.4f, 0.4f, 0.4f, 1.0f} };
 
 	int g_light = 1;
 
@@ -163,7 +165,7 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	 } else if (key == 71){
 	 	l_pos[g_light][1]= l_pos[g_light][1] - 0.5;
 	 } else if (key == 76){
-	 	g_light = g_light + 1;
+		 g_light += 1;
 	 	if(g_light == 2){
 	 		g_light = 0;
 	 	}
@@ -190,7 +192,7 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 // Called once on start up
 // 
 void initLight() {
-	float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	float ambient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 
 	glLightfv(GL_LIGHT0, GL_POSITION, l_pos[0]);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, l_int[0]);
@@ -207,6 +209,14 @@ void initLight() {
 
 	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glEnable(GL_LIGHT1);
+
+	glLightfv(GL_LIGHT2, GL_POSITION, l_pos[2]);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, l_int[2]);
+	glLightfv(GL_LIGHT2, GL_AMBIENT, ambient);
+
+
+	glEnable(GL_LIGHT2);
+
 
 	//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 }
@@ -313,6 +323,10 @@ void renderGEOM(std::vector<cgra::vec3> m_points, std::vector<cgra::vec2> m_uvs,
 	}
 
 	glEnd();
+}
+
+void renderControls() {
+	cgraCone(1, 1, 10, 10, true);
 }
 
 void createNormals(std::vector<cgra::vec3>& m_points, std::vector<cgra::vec3>&  m_normals, std::vector<triangle>&  m_triangles) {
@@ -496,15 +510,15 @@ void render(int width, int height) {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
-
-
-
-
 	setupCamera(width, height);
 	
+	//glPushMatrix(); {
+	//	glColor3f(1.0f, 1.0f, 1.0f);
+	//	glTranslatef(l_pos[1][0], l_pos[1][1], l_pos[1][2]);
+	//	renderControls();
+	//}glPopMatrix();
+
 	initLight();
-
-
 
 	// Without shaders
 	// Uses the default OpenGL pipeline
@@ -523,6 +537,11 @@ void render(int width, int height) {
 		glBindTexture(GL_TEXTURE_2D, textures[0]);
 
 		glBegin(GL_TRIANGLES);
+
+		float ambient[] = { 0.0,0.0,0.0 ,1.0 };
+		glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+		float diffuse[] = { 1.0,1.0,1.0 ,1.0 };
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
 
 		renderGEOM(v_m_points[0], v_m_uvs[0], v_m_normals[0], v_m_triangles[0]);
 
@@ -574,13 +593,13 @@ void render(int width, int height) {
 		glTranslatef(-6, 2, 3);
 		glBegin(GL_TRIANGLES);
 
-		float ambient[] = { 0.8,0.5,0.5 ,1.0 };
+		float ambient[] = { 1.0,0.5,0.0 ,1.0 };
 		glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
-		float diffuse[] = { 0.8,0.5,0.5 ,1.0 };
+		float diffuse[] = { 1.0,0.5,0.0 ,1.0 };
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-		float specular[] = { 0.0,0.0,0.0, 1.0 };
+		float specular[] = { 0.4,0.4,0.4, 1.0 };
 		glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-		float shininess[] = { 0.0*128.0 };
+		float shininess[] = { 0.10*128.0 };
 		glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
 
 		renderGEOM(v_m_points[3], v_m_uvs[3], v_m_normals[3], v_m_triangles[3]);
@@ -602,8 +621,14 @@ void render(int width, int height) {
 			glTranslatef(6, 2.5, -5);
 			glBegin(GL_TRIANGLES);
 
+			float ambient[] = { 0.5,0.5,0.5 ,1.0 };
+			glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
 			float diffuse[] = { 1.0,1.0,1.0 ,1.0 };
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+			float specular[] = { 0.0,0.0,0.0, 1.0 };
+			glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+			float shininess[] = { 0.0*128.0 };
+			glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
 
 			renderGEOM(v_m_points[4], v_m_uvs[4], v_m_normals[4], v_m_triangles[4]);
 
@@ -611,9 +636,27 @@ void render(int width, int height) {
 
 		glDisable(GL_TEXTURE_2D);
 
+		glPushMatrix(); {
+
+			glTranslatef(0, 0.5, 0);
+			glBegin(GL_TRIANGLES);
+
+			float ambient[] = { 0.15,0.1,0.3 ,1.0 };
+			glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+			float diffuse[] = { 0.9,0.9,0.9 ,1.0 };
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+			float specular[] = { 0.6,0.6,0.6, 1.0 };
+			glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+			float shininess[] = {50.0 };
+			glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
+
+			renderGEOM(v_m_points[5], v_m_uvs[5], v_m_normals[5], v_m_triangles[5]);
+
+		} glPopMatrix();
 
 
-
+		glDisable(GL_LIGHT0);
+		glDisable(GL_LIGHT1);
 		glFlush();
 	}
 
@@ -769,6 +812,9 @@ int main(int argc, char **argv) {
 	readOBJ(&v_m_points, &v_m_uvs, &v_m_normals, &v_m_triangles);
 
 	m_filename = "work/res/assets/box.obj";
+	readOBJ(&v_m_points, &v_m_uvs, &v_m_normals, &v_m_triangles);
+
+	m_filename = "work/res/assets/bunny.obj";
 	readOBJ(&v_m_points, &v_m_uvs, &v_m_normals, &v_m_triangles);
 
 
