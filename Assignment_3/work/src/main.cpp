@@ -82,6 +82,17 @@ std::vector<std::vector<triangle>> v_m_triangles;	// Triangle/Face list
 std::vector<std::vector<cgra::vec3>> m_triangleNormals; // Per face normal list
 
 
+// for the point light
+	float pt_pos[] = { 2.0f, 3.0f, 2.0f, 1.0f };
+	float pt_int[] = { 0.9f, 0.9f, 0.9f, 1.0f };
+
+	float l_pos[][4] = {{2.0f, 3.0f, 2.0f, 1.0f},
+						{2.0f, 2.0f, 2.0f, 1.0f}};
+	float l_int[][4] = {{0.9f, 0.9f, 0.9f, 1.0f},
+						{0.9f, 0.9f, 0.9f, 1.0f}};
+
+	int g_light = 1;
+
 // Mouse Button callback
 // Called for mouse movement event on since the last glfwPollEvents
 //
@@ -128,7 +139,36 @@ void scrollCallback(GLFWwindow *win, double xoffset, double yoffset) {
 // Called for every key event on since the last glfwPollEvents
 //
 void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
-	// cout << "Key Callback :: key=" << key << "scancode=" << scancode
+	//out << "Key Callback :: key=" << key << "scancode=" << scancode << endl;
+
+	if(key == 262){
+		l_pos[g_light][0] = l_pos[g_light][0] + 0.5;
+	} else if(key == 263){
+		l_pos[g_light][0] = l_pos[g_light][0] - 0.5;
+
+	} else if(key == 265){
+		l_pos[g_light][2] = l_pos[g_light][2] - 0.5;
+	} else if(key == 264){
+		l_pos[g_light][2] = l_pos[g_light][2]+ 0.5;
+	} else if(key == 82){
+		l_int[g_light][0] = l_int[g_light][0] + 0.2;
+	 	l_int[g_light][1] = l_int[g_light][1] + 0.2;
+	 	l_int[g_light][2] = l_int[g_light][2] + 0.2;	
+	 } else if(key == 70){
+	 	l_int[g_light][0] = l_int[g_light][0] - 0.2;
+	 	l_int[g_light][1] = l_int[g_light][1] - 0.2;
+	 	l_int[g_light][2] = l_int[g_light][2] - 0.2;
+	 } else if(key == 84){
+	 	l_pos[g_light][1]= l_pos[g_light][1] + 0.5;
+	 } else if (key == 71){
+	 	l_pos[g_light][1]= l_pos[g_light][1] - 0.5;
+	 } else if (key == 76){
+	 	g_light = g_light + 1;
+	 	if(g_light == 2){
+	 		g_light = 0;
+	 	}
+	 }
+
 	// 	<< "action=" << action << "mods=" << mods << endl;
 	// YOUR CODE GOES HERE
 	// ...
@@ -139,7 +179,9 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 // Called for every character input event on since the last glfwPollEvents
 //
 void charCallback(GLFWwindow *win, unsigned int c) {
-	// cout << "Char Callback :: c=" << char(c) << endl;
+	 //cout << "Char Callback :: c=" << char(c) << endl;
+
+
 	// Not needed for this assignment, but useful to have later on
 }
 
@@ -148,24 +190,25 @@ void charCallback(GLFWwindow *win, unsigned int c) {
 // Called once on start up
 // 
 void initLight() {
-	float dir_pos[] = { 2.0f, 3.0f, 2.0f, 1.0f };
-	float dir_int[] = { 2.0f, 2.0f, 2.0f, 2.0f };
-	//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 
-	glLightfv(GL_LIGHT0, GL_POSITION, dir_pos);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, dir_int);
-	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	glLightfv(GL_LIGHT0, GL_POSITION, l_pos[0]);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, l_int[0]);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glEnable(GL_LIGHT0);
 
-	//float spot_pos[] = { 0.0f, 5.0f, 0.0f, 0.0f };
-	//float spot_dir[] = { 0.0f, -1.0f, 0.0f };
-	//float spot_int[] = { 0.8f, 0.8f, 0.8f, 1.0f };
-	////float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 
-	//glLightfv(GL_LIGHT1, GL_POSITION, spot_pos);
-	//glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_int);
-	////glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	//glEnable(GL_LIGHT1);
+	glLightfv(GL_LIGHT1, GL_POSITION, l_pos[1]);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, l_int[1]);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.0);
+	GLfloat spot_direction[] = {0.0, -1.0, 0.0};
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
+
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	glEnable(GL_LIGHT1);
+
+	//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 }
 
 
@@ -407,7 +450,7 @@ void readOBJ(std::vector<std::vector<cgra::vec3>>* v_m_points, std::vector<std::
 				}
 
 				// IFF we have 3 verticies, construct a triangle
-				if (verts.size() == 3) {
+				if (verts.size() >= 3) {
 					triangle tri;
 					tri.v[0] = verts[0];
 					tri.v[1] = verts[1];
@@ -454,9 +497,13 @@ void render(int width, int height) {
 	glEnable(GL_NORMALIZE);
 
 
-	setupCamera(width, height);
 
+
+
+	setupCamera(width, height);
+	
 	initLight();
+
 
 
 	// Without shaders
@@ -464,6 +511,7 @@ void render(int width, int height) {
 	//
 	if (!g_useShader) {
 
+		glPushMatrix();{
 		//table
 		// Enable Drawing texures
 		glEnable(GL_TEXTURE_2D);
@@ -479,6 +527,7 @@ void render(int width, int height) {
 		renderGEOM(v_m_points[0], v_m_uvs[0], v_m_normals[0], v_m_triangles[0]);
 
 		glDisable(GL_TEXTURE_2D);
+	} glPopMatrix();
 
 
 		// teapot
@@ -490,7 +539,7 @@ void render(int width, int height) {
 			glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
 			float diffuse[] = { 0.15,0.1,0.3 ,1.0 };
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-			float specular[] = { 0.3,0.3,0.3, 1.0 };
+			float specular[] = { 0.6,0.6,0.6, 1.0 };
 			glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
 			float shininess[] = { 0.10*128.0 };
 			glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
@@ -552,6 +601,9 @@ void render(int width, int height) {
 			glScalef(0.8, 0.8, 0.8);
 			glTranslatef(6, 2.5, -5);
 			glBegin(GL_TRIANGLES);
+
+			float diffuse[] = { 1.0,1.0,1.0 ,1.0 };
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
 
 			renderGEOM(v_m_points[4], v_m_uvs[4], v_m_normals[4], v_m_triangles[4]);
 
